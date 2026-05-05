@@ -14,9 +14,9 @@ export default function Features() {
     let sorted = [...moviesData];
 
     if (value === "LOW_TO_HIGH") {
-      sorted.sort((a, b) => a.price - b.price);
+      sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
     } else if (value === "HIGH_TO_LOW") {
-      sorted.sort((a, b) => b.price - a.price);
+      sorted.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
     }
 
     setMovies(sorted);
