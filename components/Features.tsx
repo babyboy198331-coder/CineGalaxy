@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import MovieGrid from "./MovieGrid";
 import moviesData, { Movie } from "../lib/movies";
 
@@ -12,7 +11,7 @@ export default function Features() {
   const [movies, setMovies] = useState<Movie[]>(moviesData);
   const [search, setSearch] = useState("");
 
-  // Search local movies and navigate to first result
+  // Search local movies and keep the filtered list visible
   const searchMovies = (query: string) => {
     if (!query.trim()) {
       setMovies(moviesData);
@@ -25,12 +24,7 @@ export default function Features() {
       movie.cast.some(actor => actor.toLowerCase().includes(query.toLowerCase()))
     );
 
-    if (filtered.length > 0) {
-      // Navigate to first search result
-      router.push(`/${filtered[0].id}`);
-    } else {
-      setMovies([]);
-    }
+    setMovies(filtered);
   };
 
   // Handle search input change
@@ -39,15 +33,15 @@ export default function Features() {
   };
 
   // Handle search on Enter key
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       searchMovies(search);
     }
   };
 
-  // Sort movies by price
+  // Sort current movie list by price
   const sortMovies = (value: string) => {
-    let sorted = [...moviesData];
+    const sorted = [...movies];
 
     if (value === "LOW_TO_HIGH") {
       sorted.sort((a, b) => a.price - b.price);
@@ -74,7 +68,7 @@ export default function Features() {
                 placeholder="Search movies..."
                 value={search}
                 onChange={handleSearchChange}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
               />
               <button onClick={() => searchMovies(search)}>
                 <i className="fas fa-search"></i>
