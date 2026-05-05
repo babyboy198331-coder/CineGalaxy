@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import MovieGrid from "./MovieGrid";
 import moviesData, { Movie } from "../lib/movies";
 
@@ -10,6 +10,33 @@ export default function Features() {
   const [movies, setMovies] = useState<Movie[]>(moviesData);
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Load popular movies on page load
+  useEffect(() => {
+    if (!hasInitialized && TMDB_API_KEY) {
+      loadPopularMovies();
+      setHasInitialized(true);
+    }
+  }, [hasInitialized]);
+
+  const loadPopularMovies = async () => {
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const popularMovies = mapTmdbResults(data.results || []);
+        setMovies(applySort(popularMovies, sortOrder));
+      }
+    } catch (error) {
+      console.error("Failed to load popular movies:", error);
+    }
+  };
 
   const applySort = (list: Movie[], order: string) => {
     const sorted = [...list];
@@ -69,18 +96,34 @@ export default function Features() {
     setMovies(applySort(filtered, sortOrder));
   };
 
-  // Handle search input change
+  // Handle search input change with debounce
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);
-    searchMovies(value);
+
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    setIsLoading(true);
+
+    // Set new timer for debounced search
+    debounceTimer.current = setTimeout(() => {
+      searchMovies(value);
+      setIsLoading(false);
+    }, 300);
   };
 
-  // Handle search on Enter key
+  // Handle search on Enter key (immediate)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      searchMovies(search);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      setIsLoading(true);
+      searchMovies(search).then(() => setIsLoading(false));
     }
   };
 
@@ -126,8 +169,16 @@ export default function Features() {
             </select>
           </div>
 
+          {/* Loading Indicator */}
+          {isLoading && <div className="search-loading">Searching...</div>}
+
+          {/* No Results Message */}
+          {!isLoading && search && movies.length === 0 && (
+            <div className="no-results">No movies found for "{search}"</div>
+          )}
+
           {/* Movie List */}
-          <MovieGrid movies={movies} />
+          {movies.length > 0 && <MovieGrid movies={movies} />}
         </div>
       </div>
     </section>
