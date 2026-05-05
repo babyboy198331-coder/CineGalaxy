@@ -1,27 +1,32 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import moviesData from "../lib/movies";
 
 export default function Explore() {
-  const router = useRouter();
-
-  const handleExploreClick = () => {
-    const randomMovie = moviesData[Math.floor(Math.random() * moviesData.length)];
-    router.push(`/${randomMovie.id}`);
-  };
+  const featuredMovies = moviesData.slice(0, 4);
 
   return (
     <section id="explore">
       <div className="container">
-        <div className="row row__column">
-          <h2>
-            Explore more <span className="gold">Movies</span>
-          </h2>
+        <div className="row row__column explore__row">
+          <div className="explore__header">
+            <h2>
+              Explore more <span className="gold">Movies</span>
+            </h2>
+            <p className="explore__subtitle">
+              Jump right into a featured title and keep browsing the best picks.
+            </p>
+          </div>
 
-          <button className="btn" onClick={handleExploreClick}>
-            Explore a Movie
-          </button>
+          <div className="explore__cards">
+            {featuredMovies.map((movie) => (
+              <Link href={`/${movie.id}`} key={movie.id} className="explore__card">
+                <span className="explore__card-title">{movie.title}</span>
+                <small>{movie.release_date?.slice(0, 4) ?? `$${movie.price}`}</small>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>

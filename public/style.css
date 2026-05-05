@@ -20,6 +20,55 @@ body {
     font-size: 24px;
 }
 
+.explore__header {
+  max-width: 680px;
+  margin-bottom: 24px;
+}
+
+.explore__subtitle {
+  margin-top: 12px;
+  color: #d4c46b;
+  line-height: 1.6;
+  font-size: 0.98rem;
+}
+
+.explore__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.explore__card {
+  display: block;
+  padding: 20px;
+  background: #141414;
+  border: 1px solid rgba(255, 215, 0, 0.12);
+  border-radius: 16px;
+  color: #f7f1d4;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.explore__card:hover {
+  transform: translateY(-3px);
+  border-color: gold;
+  box-shadow: 0 16px 35px rgba(255, 215, 0, 0.16);
+}
+
+.explore__card-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: gold;
+}
+
+.explore__card small {
+  color: #b0a258;
+}
+
 .navbar {
   position: sticky;
   top: 0;
