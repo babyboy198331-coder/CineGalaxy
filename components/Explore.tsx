@@ -1,4 +1,16 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import moviesData from "../lib/movies";
+
 export default function Explore() {
+  const router = useRouter();
+
+  const handleExploreClick = () => {
+    const randomMovie = moviesData[Math.floor(Math.random() * moviesData.length)];
+    router.push(`/${randomMovie.id}`);
+  };
+
   return (
     <section id="explore">
       <div className="container">
@@ -7,9 +19,9 @@ export default function Explore() {
             Explore more <span className="gold">Movies</span>
           </h2>
 
-          <a href="#features">
-            <button className="btn">Browse Movies</button>
-          </a>
+          <button className="btn" onClick={handleExploreClick}>
+            Explore a Movie
+          </button>
         </div>
       </div>
     </section>
