@@ -385,6 +385,20 @@ body {
   margin-top: 20px;
 }
 
+.search-results-header {
+  text-align: center;
+  color: #e0e0e0;
+  font-size: 1.15rem;
+  padding: 20px;
+  margin: 20px 0;
+  border-bottom: 2px solid #e50914;
+}
+
+.search-results-header .gold {
+  color: gold;
+  font-weight: 700;
+}
+
 /* HIGHLIGHT WRAPPER */
 .highlight__wrapper {
   display: flex;

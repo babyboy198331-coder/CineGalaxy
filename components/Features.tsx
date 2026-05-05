@@ -177,6 +177,13 @@ export default function Features() {
             <div className="no-results">No movies found for "{search}"</div>
           )}
 
+          {/* Search Results Header */}
+          {!isLoading && search && movies.length > 0 && (
+            <div className="search-results-header">
+              Found <span className="gold">{movies.length}</span> results for "<span className="gold">{search}</span>"
+            </div>
+          )}
+
           {/* Movie List */}
           {movies.length > 0 && <MovieGrid movies={movies} />}
         </div>
