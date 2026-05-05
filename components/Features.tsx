@@ -7,35 +7,41 @@ import moviesData, { Movie } from "../lib/movies";
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 
 export default function Features() {
-  const [movies, setMovies] = useState<Movie[]>(moviesData);
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
-  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Load popular movies on page load
   useEffect(() => {
-    if (!hasInitialized && TMDB_API_KEY) {
-      loadPopularMovies();
-      setHasInitialized(true);
-    }
-  }, [hasInitialized]);
+    loadPopularMovies();
+  }, []);
 
   const loadPopularMovies = async () => {
-    try {
-      const response = await fetch(
-        `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`
-      );
+    setIsLoading(true);
+    
+    if (TMDB_API_KEY) {
+      try {
+        const response = await fetch(
+          `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`
+        );
 
-      if (response.ok) {
-        const data = await response.json();
-        const popularMovies = mapTmdbResults(data.results || []);
-        setMovies(applySort(popularMovies, sortOrder));
+        if (response.ok) {
+          const data = await response.json();
+          const popularMovies = mapTmdbResults(data.results || []);
+          setMovies(applySort(popularMovies, sortOrder));
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to load popular movies from API:", error);
       }
-    } catch (error) {
-      console.error("Failed to load popular movies:", error);
     }
+
+    // Fallback to local data
+    setMovies(applySort(moviesData, sortOrder));
+    setIsLoading(false);
   };
 
   const applySort = (list: Movie[], order: string) => {
@@ -87,6 +93,7 @@ export default function Features() {
       }
     }
 
+    // Fallback to local search
     const filtered = moviesData.filter((movie) =>
       movie.title.toLowerCase().includes(query.toLowerCase()) ||
       movie.overview?.toLowerCase().includes(query.toLowerCase()) ||
