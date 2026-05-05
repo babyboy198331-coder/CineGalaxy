@@ -2,10 +2,44 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import movies, { Movie } from "../../lib/movies";
 
+const TMDB_API_KEY = process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY;
+
+async function fetchRemoteMovie(id: number): Promise<Movie | null> {
+  if (!TMDB_API_KEY) return null;
+
+  try {
+    const response = await fetch(
+      `https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=credits`,
+      { cache: "no-store" }
+    );
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const cast = data.credits?.cast?.slice(0, 6).map((member: any) => member.name) || [];
+
+    return {
+      id: data.id,
+      title: data.title,
+      poster_path: data.poster_path,
+      overview: data.overview,
+      release_date: data.release_date,
+      cast,
+    };
+  } catch (error) {
+    console.error("Failed to fetch TMDB movie details", error);
+    return null;
+  }
+}
+
 export default async function MovieDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const movieId = Number(id);
-  const movie = movies.find((m: Movie) => m.id === movieId);
+  let movie: Movie | null = movies.find((m: Movie) => m.id === movieId) ?? null;
+
+  if (!movie) {
+    movie = await fetchRemoteMovie(movieId);
+  }
 
   if (!movie) return notFound();
 

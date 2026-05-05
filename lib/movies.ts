@@ -1,11 +1,11 @@
 export type Movie = {
   id: number;
   title: string;
-  poster_path: string;
-  price: number;
-  overview: string;
-  cast: string[];
-  release_date: string;
+  poster_path?: string;
+  price?: number;
+  overview?: string;
+  cast?: string[];
+  release_date?: string;
 };
 
 const movies: Movie[] = [
