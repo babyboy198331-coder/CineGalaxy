@@ -41,20 +41,46 @@ body {
 }
 
 .explore__card {
-  display: block;
-  padding: 20px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+  padding: 0;
   background: #141414;
   border: 1px solid rgba(255, 215, 0, 0.12);
   border-radius: 16px;
   color: #f7f1d4;
   text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  overflow: hidden;
 }
 
 .explore__card:hover {
   transform: translateY(-3px);
   border-color: gold;
   box-shadow: 0 16px 35px rgba(255, 215, 0, 0.16);
+}
+
+.explore__card-image-wrapper {
+  width: 100%;
+  min-height: 180px;
+  overflow: hidden;
+  background: #111;
+}
+
+.explore__card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.explore__card:hover .explore__card-image {
+  transform: scale(1.03);
+}
+
+.explore__card-body {
+  padding: 18px 20px;
 }
 
 .explore__card-title {
