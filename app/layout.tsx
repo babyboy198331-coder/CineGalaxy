@@ -15,8 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IMDB Clone",
-  description: "A movie catalog app built with Next.js",
+  title: "CineGalaxy — Movie Catalog",
+  description:
+    "Browse and search movies with live TMDB data — built with Next.js, React, and TypeScript.",
 };
 
 export default function RootLayout({

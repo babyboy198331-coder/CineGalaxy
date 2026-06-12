@@ -1,7 +1,6 @@
-"use client";
-
 import Link from "next/link";
 import moviesData from "../lib/movies";
+import { posterUrl } from "../lib/poster";
 
 export default function Explore() {
   const featuredMovies = moviesData.slice(0, 3);
@@ -24,20 +23,17 @@ export default function Explore() {
               <Link href={`/${movie.id}`} key={movie.id} className="explore__card">
                 <div className="explore__card-image-wrapper">
                   <img
-                    src={
-                      movie.poster_path?.startsWith("/assets")
-                        ? movie.poster_path
-                        : movie.poster_path
-                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                        : "/assets/imdb.jpg"
-                    }
+                    src={posterUrl(movie.poster_path)}
                     alt={movie.title}
                     className="explore__card-image"
                   />
                 </div>
                 <div className="explore__card-body">
                   <span className="explore__card-title">{movie.title}</span>
-                  <small>{movie.release_date?.slice(0, 4) ?? `$${movie.price}`}</small>
+                  <small>
+                    {movie.release_date?.slice(0, 4)}
+                    {movie.vote_average ? ` · ★ ${movie.vote_average.toFixed(1)}` : ""}
+                  </small>
                 </div>
               </Link>
             ))}

@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import movies, { Movie } from "../../lib/movies";
+import { posterUrl } from "../../lib/poster";
 
-const TMDB_API_KEY = process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY;
+const TMDB_API_KEY =
+  process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY;
 
 async function fetchRemoteMovie(id: number): Promise<Movie | null> {
   if (!TMDB_API_KEY) return null;
@@ -16,7 +18,8 @@ async function fetchRemoteMovie(id: number): Promise<Movie | null> {
     if (!response.ok) return null;
 
     const data = await response.json();
-    const cast = data.credits?.cast?.slice(0, 6).map((member: any) => member.name) || [];
+    const cast =
+      data.credits?.cast?.slice(0, 6).map((member: { name: string }) => member.name) || [];
 
     return {
       id: data.id,
@@ -24,6 +27,7 @@ async function fetchRemoteMovie(id: number): Promise<Movie | null> {
       poster_path: data.poster_path,
       overview: data.overview,
       release_date: data.release_date,
+      vote_average: data.vote_average,
       cast,
     };
   } catch (error) {
@@ -32,7 +36,11 @@ async function fetchRemoteMovie(id: number): Promise<Movie | null> {
   }
 }
 
-export default async function MovieDetails({ params }: { params: Promise<{ id: string }> }) {
+export default async function MovieDetails({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const movieId = Number(id);
   let movie: Movie | null = movies.find((m: Movie) => m.id === movieId) ?? null;
@@ -51,13 +59,7 @@ export default async function MovieDetails({ params }: { params: Promise<{ id: s
 
       <img
         className="movie-details__poster"
-        src={
-          movie.poster_path?.startsWith("/assets")
-            ? movie.poster_path
-            : movie.poster_path
-            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-            : "/assets/imdb.jpg"
-        }
+        src={posterUrl(movie.poster_path)}
         alt={movie.title}
       />
 
@@ -65,6 +67,7 @@ export default async function MovieDetails({ params }: { params: Promise<{ id: s
 
       <p className="movie-details__year">
         {movie.release_date ? movie.release_date.slice(0, 4) : "Unknown"}
+        {movie.vote_average ? ` · ★ ${movie.vote_average.toFixed(1)}` : ""}
       </p>
 
       <p className="movie-details__description">

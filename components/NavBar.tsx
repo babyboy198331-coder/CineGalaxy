@@ -5,7 +5,7 @@ export default function NavBar() {
     <nav className="navbar">
       <div className="nav__container">
         <Link href="/" className="nav__logo">
-          IMDB Clone
+          Cine<span className="gold">Galaxy</span>
         </Link>
 
         <div className="nav__links">

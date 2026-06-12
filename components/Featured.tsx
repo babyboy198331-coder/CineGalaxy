@@ -1,7 +1,6 @@
-"use client";
-
 import MovieCard from "./MovieCard";
 import moviesData from "../lib/movies";
+import { posterUrl } from "../lib/poster";
 
 export default function Featured() {
   return (
@@ -18,20 +17,9 @@ export default function Featured() {
                 key={movie.id}
                 id={movie.id}
                 title={movie.title}
-                poster={
-                  movie.poster_path?.startsWith("/assets")
-                    ? movie.poster_path
-                    : movie.poster_path
-                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                    : "/assets/imdb.jpg"
-                }
-                subtitle={
-                  movie.release_date
-                    ? movie.release_date.slice(0, 4)
-                    : movie.price
-                    ? `$${movie.price}`
-                    : ""
-                }
+                poster={posterUrl(movie.poster_path)}
+                year={movie.release_date ? movie.release_date.slice(0, 4) : ""}
+                rating={movie.vote_average}
               />
             ))}
           </div>

@@ -1,51 +1,23 @@
-"use client";
+import Link from "next/link";
 
-import { useState } from "react";
-import MovieGrid from "./MovieGrid";
-import moviesData, { Movie } from "../lib/movies";
-
-const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-
-export default function Features() {
-  const [movies, setMovies] = useState<Movie[]>(moviesData);
-
-  // Sort movies by price
-  const sortMovies = (value: string) => {
-    let sorted = [...moviesData];
-
-    if (value === "LOW_TO_HIGH") {
-      sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
-    } else if (value === "HIGH_TO_LOW") {
-      sorted.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
-    }
-
-    setMovies(sorted);
-  };
-
+export default function Landing() {
   return (
-    <section id="features">
-      <div className="container">
-        <div className="row">
-          <div className="movies__header">
-            <h2 className="section__title movies__header--title">
-              ALL <span className="gold">Movies</span>
-            </h2>
-
-            {/* Sort Dropdown */}
-            <select
-              defaultValue=""
-              onChange={(e) => sortMovies(e.target.value)}
-            >
-              <option value="" disabled>
-                Sort
-              </option>
-              <option value="LOW_TO_HIGH">Price, Low to High</option>
-              <option value="HIGH_TO_LOW">Price, High to Low</option>
-            </select>
-          </div>
-
-          {/* Movie List */}
-          <MovieGrid movies={movies} />
+    <section id="landing">
+      <div className="header__container">
+        <h1 className="hero__title">
+          Find your next <span className="gold">favorite movie</span>
+        </h1>
+        <p className="hero__subtitle">
+          Browse popular titles, search the full TMDB catalog, and dive into
+          details, ratings, and cast for every film.
+        </p>
+        <div className="hero__actions">
+          <Link href="/#features" className="hero__btn hero__btn--primary">
+            Browse Movies
+          </Link>
+          <Link href="/#explore" className="hero__btn hero__btn--ghost">
+            Explore Picks
+          </Link>
         </div>
       </div>
     </section>

@@ -1,26 +1,46 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import MovieGrid from "./MovieGrid";
 import moviesData, { Movie } from "../lib/movies";
 
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 
+type SortOrder = "" | "RATING_HIGH_TO_LOW" | "RATING_LOW_TO_HIGH";
+
+function applySort(list: Movie[], order: SortOrder): Movie[] {
+  if (!order) return list;
+  const sorted = [...list];
+  sorted.sort((a, b) =>
+    order === "RATING_HIGH_TO_LOW"
+      ? (b.vote_average ?? 0) - (a.vote_average ?? 0)
+      : (a.vote_average ?? 0) - (b.vote_average ?? 0)
+  );
+  return sorted;
+}
+
+function mapTmdbResults(results: any[]): Movie[] {
+  return results.map((movie) => ({
+    id: movie.id,
+    title: movie.title || movie.name || "Untitled",
+    poster_path: movie.poster_path,
+    release_date: movie.release_date,
+    overview: movie.overview,
+    vote_average: movie.vote_average,
+    cast: [],
+  }));
+}
+
 export default function Features() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [search, setSearch] = useState("");
-  const [sortOrder, setSortOrder] = useState("");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("");
   const [isLoading, setIsLoading] = useState(false);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load popular movies on page load
-  useEffect(() => {
-    loadPopularMovies();
-  }, []);
-
-  const loadPopularMovies = async () => {
+  const loadPopularMovies = useCallback(async () => {
     setIsLoading(true);
-    
+
     if (TMDB_API_KEY) {
       try {
         const response = await fetch(
@@ -29,8 +49,7 @@ export default function Features() {
 
         if (response.ok) {
           const data = await response.json();
-          const popularMovies = mapTmdbResults(data.results || []);
-          setMovies(applySort(popularMovies, sortOrder));
+          setMovies(applySort(mapTmdbResults(data.results || []), sortOrder));
           setIsLoading(false);
           return;
         }
@@ -42,35 +61,16 @@ export default function Features() {
     // Fallback to local data
     setMovies(applySort(moviesData, sortOrder));
     setIsLoading(false);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const applySort = (list: Movie[], order: string) => {
-    const sorted = [...list];
+  useEffect(() => {
+    loadPopularMovies();
+  }, [loadPopularMovies]);
 
-    if (order === "LOW_TO_HIGH") {
-      sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
-    } else if (order === "HIGH_TO_LOW") {
-      sorted.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
-    }
-
-    return sorted;
-  };
-
-  const mapTmdbResults = (results: any[]): Movie[] => {
-    return results.map((movie) => ({
-      id: movie.id,
-      title: movie.title || movie.name || "Untitled",
-      poster_path: movie.poster_path,
-      release_date: movie.release_date,
-      overview: movie.overview,
-      cast: [],
-    }));
-  };
-
-  // Search movies and keep the filtered list visible
   const searchMovies = async (query: string) => {
     if (!query.trim()) {
-      setMovies(applySort(moviesData, sortOrder));
+      loadPopularMovies();
       return;
     }
 
@@ -84,8 +84,7 @@ export default function Features() {
 
         if (response.ok) {
           const data = await response.json();
-          const remoteMovies = mapTmdbResults(data.results || []);
-          setMovies(applySort(remoteMovies, sortOrder));
+          setMovies(applySort(mapTmdbResults(data.results || []), sortOrder));
           return;
         }
       } catch (error) {
@@ -94,37 +93,35 @@ export default function Features() {
     }
 
     // Fallback to local search
-    const filtered = moviesData.filter((movie) =>
-      movie.title.toLowerCase().includes(query.toLowerCase()) ||
-      movie.overview?.toLowerCase().includes(query.toLowerCase()) ||
-      movie.cast?.some((actor) => actor.toLowerCase().includes(query.toLowerCase()))
+    const q = query.toLowerCase();
+    const filtered = moviesData.filter(
+      (movie) =>
+        movie.title.toLowerCase().includes(q) ||
+        movie.overview?.toLowerCase().includes(q) ||
+        movie.cast?.some((actor) => actor.toLowerCase().includes(q))
     );
 
     setMovies(applySort(filtered, sortOrder));
   };
 
-  // Handle search input change with debounce
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);
 
-    // Clear previous timer
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
 
     setIsLoading(true);
 
-    // Set new timer for debounced search
-    debounceTimer.current = setTimeout(() => {
-      searchMovies(value);
+    debounceTimer.current = setTimeout(async () => {
+      await searchMovies(value);
       setIsLoading(false);
     }, 300);
   };
 
-  // Handle search on Enter key (immediate)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
@@ -134,10 +131,9 @@ export default function Features() {
     }
   };
 
-  // Sort current movie list by price
-  const sortMovies = (value: string) => {
+  const sortMovies = (value: SortOrder) => {
     setSortOrder(value);
-    setMovies(applySort(movies, value));
+    setMovies((current) => applySort(current, value));
   };
 
   return (
@@ -146,7 +142,7 @@ export default function Features() {
         <div className="row">
           <div className="movies__header">
             <h2 className="section__title movies__header--title">
-              ALL <span className="gold">Movies</span>
+              All <span className="gold">Movies</span>
             </h2>
 
             {/* Search Box */}
@@ -157,22 +153,40 @@ export default function Features() {
                 value={search}
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyDown}
+                aria-label="Search movies"
               />
-              <button onClick={() => searchMovies(search)}>
-                <i className="fas fa-search"></i>
+              <button
+                onClick={() => searchMovies(search)}
+                aria-label="Search"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <line x1="21" y1="21" x2="16.5" y2="16.5" />
+                </svg>
               </button>
             </div>
 
             {/* Sort Dropdown */}
             <select
+              id="filter"
               value={sortOrder}
-              onChange={(e) => sortMovies(e.target.value)}
+              onChange={(e) => sortMovies(e.target.value as SortOrder)}
+              aria-label="Sort movies"
             >
               <option value="" disabled>
-                Sort
+                Sort by Rating
               </option>
-              <option value="LOW_TO_HIGH">Price, Low to High</option>
-              <option value="HIGH_TO_LOW">Price, High to Low</option>
+              <option value="RATING_HIGH_TO_LOW">Rating, High to Low</option>
+              <option value="RATING_LOW_TO_HIGH">Rating, Low to High</option>
             </select>
           </div>
 
@@ -181,13 +195,16 @@ export default function Features() {
 
           {/* No Results Message */}
           {!isLoading && search && movies.length === 0 && (
-            <div className="no-results">No movies found for "{search}"</div>
+            <div className="no-results">
+              No movies found for &quot;{search}&quot;
+            </div>
           )}
 
           {/* Search Results Header */}
           {!isLoading && search && movies.length > 0 && (
             <div className="search-results-header">
-              Found <span className="gold">{movies.length}</span> results for "<span className="gold">{search}</span>"
+              Found <span className="gold">{movies.length}</span> results for{" "}
+              &quot;<span className="gold">{search}</span>&quot;
             </div>
           )}
 
