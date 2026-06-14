@@ -487,12 +487,13 @@ footer img:hover {
 
 /* FOOTER LINKS */
 footer a {
-  color: #e50914;
-  text-decoration: none;
+  color: #ffd700;
+  text-decoration: underline;
   margin: 0 4px;
 }
 
 footer a:hover {
+  color: #fff;
   text-decoration: underline;
 }
 

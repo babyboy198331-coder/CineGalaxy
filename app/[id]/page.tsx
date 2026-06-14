@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import movies, { Movie } from "../../lib/movies";
 import { posterUrl } from "../../lib/poster";
 
@@ -54,20 +55,23 @@ export default async function MovieDetails({
   return (
     <div className="movie-details">
       <Link href="/" className="back-button">
-        ← Back to Movies
+        Back to Movies
       </Link>
 
-      <img
+      <Image
         className="movie-details__poster"
-        src={posterUrl(movie.poster_path)}
+        src={posterUrl(movie.poster_path, "w500")}
         alt={movie.title}
+        width={500}
+        height={750}
+        loading="lazy"
       />
 
       <h1 className="movie-details__title">{movie.title}</h1>
 
       <p className="movie-details__year">
         {movie.release_date ? movie.release_date.slice(0, 4) : "Unknown"}
-        {movie.vote_average ? ` · ★ ${movie.vote_average.toFixed(1)}` : ""}
+        {movie.vote_average ? ` - ${movie.vote_average.toFixed(1)}` : ""}
       </p>
 
       <p className="movie-details__description">
@@ -76,9 +80,9 @@ export default async function MovieDetails({
 
       <h2 className="movie-details__cast-title">Cast</h2>
       <ul className="movie-details__cast">
-        {movie.cast?.length
+        {movie.cast && movie.cast.length > 0
           ? movie.cast.map((actor: string) => <li key={actor}>{actor}</li>)
-          : "No cast information available."}
+          : <li>No cast information available.</li>}
       </ul>
     </div>
   );
