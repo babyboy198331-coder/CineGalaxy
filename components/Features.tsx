@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import MovieGrid from "./MovieGrid";
 import moviesData, { Movie } from "../lib/movies";
 
@@ -19,6 +19,7 @@ function applySort(list: Movie[], order: SortOrder): Movie[] {
   return sorted;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapTmdbResults(results: any[]): Movie[] {
   return results.map((movie) => ({
     id: movie.id,
@@ -31,46 +32,20 @@ function mapTmdbResults(results: any[]): Movie[] {
   }));
 }
 
-export default function Features() {
-  const [movies, setMovies] = useState<Movie[]>([]);
+export default function Features({ initialMovies }: { initialMovies: Movie[] }) {
+  const [movies, setMovies] = useState<Movie[]>(initialMovies);
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("");
   const [isLoading, setIsLoading] = useState(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadPopularMovies = useCallback(async () => {
-    setIsLoading(true);
-
-    if (TMDB_API_KEY) {
-      try {
-        const response = await fetch(
-          `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setMovies(applySort(mapTmdbResults(data.results || []), sortOrder));
-          setIsLoading(false);
-          return;
-        }
-      } catch (error) {
-        console.error("Failed to load popular movies from API:", error);
-      }
-    }
-
-    // Fallback to local data
-    setMovies(applySort(moviesData, sortOrder));
-    setIsLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    loadPopularMovies();
-  }, [loadPopularMovies]);
+  const resetToInitial = () => {
+    setMovies(applySort(initialMovies, sortOrder));
+  };
 
   const searchMovies = async (query: string) => {
     if (!query.trim()) {
-      loadPopularMovies();
+      resetToInitial();
       return;
     }
 
@@ -81,7 +56,6 @@ export default function Features() {
             query
           )}&include_adult=false&page=1`
         );
-
         if (response.ok) {
           const data = await response.json();
           setMovies(applySort(mapTmdbResults(data.results || []), sortOrder));
@@ -100,20 +74,14 @@ export default function Features() {
         movie.overview?.toLowerCase().includes(q) ||
         movie.cast?.some((actor) => actor.toLowerCase().includes(q))
     );
-
     setMovies(applySort(filtered, sortOrder));
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);
-
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
     setIsLoading(true);
-
     debounceTimer.current = setTimeout(async () => {
       await searchMovies(value);
       setIsLoading(false);
@@ -123,9 +91,7 @@ export default function Features() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
       setIsLoading(true);
       searchMovies(search).then(() => setIsLoading(false));
     }
@@ -145,7 +111,6 @@ export default function Features() {
               All <span className="gold">Movies</span>
             </h2>
 
-            {/* Search Box */}
             <div className="search-box">
               <input
                 type="text"
@@ -155,10 +120,7 @@ export default function Features() {
                 onKeyDown={handleKeyDown}
                 aria-label="Search movies"
               />
-              <button
-                onClick={() => searchMovies(search)}
-                aria-label="Search"
-              >
+              <button onClick={() => searchMovies(search)} aria-label="Search">
                 <svg
                   width="16"
                   height="16"
@@ -175,7 +137,6 @@ export default function Features() {
               </button>
             </div>
 
-            {/* Sort Dropdown */}
             <select
               id="filter"
               value={sortOrder}
@@ -190,17 +151,14 @@ export default function Features() {
             </select>
           </div>
 
-          {/* Loading Indicator */}
           {isLoading && <div className="search-loading">Searching...</div>}
 
-          {/* No Results Message */}
           {!isLoading && search && movies.length === 0 && (
             <div className="no-results">
               No movies found for &quot;{search}&quot;
             </div>
           )}
 
-          {/* Search Results Header */}
           {!isLoading && search && movies.length > 0 && (
             <div className="search-results-header">
               Found <span className="gold">{movies.length}</span> results for{" "}
@@ -208,7 +166,6 @@ export default function Features() {
             </div>
           )}
 
-          {/* Movie List */}
           {movies.length > 0 && <MovieGrid movies={movies} />}
         </div>
       </div>
